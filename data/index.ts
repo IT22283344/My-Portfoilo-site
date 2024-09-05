@@ -72,15 +72,15 @@ export const navItems = [
   export const projects = [
     {
       id: 1,
-      title: "Real estate web application",
+      title: "Floral and Event Management Application",
       des: "",
-      img: "/p1.svg",
+      img: "/sondurumal.png",
       iconLists: ["/re.svg", "/tail.svg", "/ts.svg", "/three.svg", "/fm.svg"],
       link: "",
     },
     {
       id: 2,
-      title: "Real estate web application",
+      title: "Cleaning Service Web Application",
       des: "",
       img: "/p2.svg",
       iconLists: ["/next.svg", "/tail.svg", "/ts.svg", "/stream.svg", "/c.svg"],
@@ -88,7 +88,7 @@ export const navItems = [
     },
     {
       id: 3,
-      title: "Real estate web application",
+      title: "Online Vehicle Spare Parts Management System",
       des: "",
       img: "/p3.svg",
       iconLists: ["/re.svg", "/tail.svg", "/ts.svg", "/three.svg", "/c.svg"],
