@@ -1,34 +1,86 @@
 import React from "react";
+import { cn } from "@/lib/util";
 
+type Variant = "primary" | "secondary" | "ghost";
+
+const VARIANTS: Record<Variant, string> = {
+  primary:
+    "bg-purple text-surface-0 font-semibold hover:brightness-110 active:brightness-95 shadow-soft",
+  secondary:
+    "border border-line bg-surface-2 text-ink hover:border-line-strong hover:bg-surface-1",
+  ghost: "text-ink-muted hover:text-ink hover:bg-surface-2",
+};
+
+/**
+ * Shared button/link. Renders an <a> when `href` is supplied and a <button>
+ * otherwise, so a link is never faked with a click handler.
+ *
+ * The original props (title / icon / position / handleClick / otherClasses)
+ * are kept so existing call sites keep working.
+ */
 const MagicButton = ({
   title,
   icon,
-  position,
+  position = "right",
   handleClick,
   otherClasses,
+  variant = "primary",
+  href,
+  external = false,
+  fullWidth = false,
+  ariaLabel,
 }: {
   title: string;
-  icon: React.ReactNode;
-  position: string;
+  icon?: React.ReactNode;
+  position?: string;
   handleClick?: () => void;
   otherClasses?: string;
+  variant?: Variant;
+  href?: string;
+  external?: boolean;
+  fullWidth?: boolean;
+  ariaLabel?: string;
 }) => {
+  const classes = cn(
+    "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm",
+    "transition-[background-color,border-color,color,filter,transform] duration-200 ease-out-expo",
+    "active:translate-y-px",
+    VARIANTS[variant],
+    fullWidth ? "w-full" : "w-full sm:w-auto",
+    otherClasses
+  );
+
+  const content = (
+    <>
+      {position === "left" && icon}
+      {title}
+      {position === "right" && icon}
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        aria-label={ariaLabel}
+        className={classes}
+        {...(external
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+      >
+        {content}
+      </a>
+    );
+  }
+
   return (
     <button
-      className="relative inline-flex h-12 w-full md:w-60 md:mt-10 overflow-hidden rounded-lg p-[1px] focus:outline-none"
+      type="button"
       onClick={handleClick}
+      aria-label={ariaLabel}
+      className={classes}
     >
-      <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-
-      
-      <span
-        className={`inline-flex h-full w-full cursor-pointer items-center justify-center rounded-lg
-             bg-slate-950 px-7 text-sm font-medium text-white backdrop-blur-3xl gap-2 ${otherClasses}`}
-      >
-        {position === "left" && icon}
-        {title}
-        {position === "right" && icon}
-      </span>
+      {content}
     </button>
   );
 };

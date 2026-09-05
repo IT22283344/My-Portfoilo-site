@@ -1,7 +1,9 @@
 "use client";
 
-import { cn } from "@/lib/util";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
+
+import { cn } from "@/lib/util";
 
 export const InfiniteMovingCards = ({
   items,
@@ -11,9 +13,9 @@ export const InfiniteMovingCards = ({
   className,
 }: {
   items: {
-    quote: string;
+    /** Optional: rendered as a text-only pill when there is no logo asset. */
+    img: string;
     name: string;
-    title: string;
   }[];
   direction?: "left" | "right";
   speed?: "fast" | "normal" | "slow";
@@ -22,11 +24,18 @@ export const InfiniteMovingCards = ({
 }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const scrollerRef = React.useRef<HTMLUListElement>(null);
+  const duplicated = React.useRef(false);
+  const [start, setStart] = useState(false);
 
   useEffect(() => {
+    // React 18 StrictMode mounts effects twice in dev; without this guard the
+    // list was cloned a second time and the marquee ran at half speed.
+    if (duplicated.current) return;
+    duplicated.current = true;
     addAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const [start, setStart] = useState(false);
+
   function addAnimation() {
     if (containerRef.current && scrollerRef.current) {
       const scrollerContent = Array.from(scrollerRef.current.children);
@@ -43,89 +52,68 @@ export const InfiniteMovingCards = ({
       setStart(true);
     }
   }
+
   const getDirection = () => {
     if (containerRef.current) {
-      if (direction === "left") {
-        containerRef.current.style.setProperty(
-          "--animation-direction",
-          "forwards"
-        );
-      } else {
-        containerRef.current.style.setProperty(
-          "--animation-direction",
-          "reverse"
-        );
-      }
+      containerRef.current.style.setProperty(
+        "--animation-direction",
+        direction === "left" ? "forwards" : "reverse"
+      );
     }
   };
+
   const getSpeed = () => {
     if (containerRef.current) {
-      if (speed === "fast") {
-        containerRef.current.style.setProperty("--animation-duration", "20s");
-      } else if (speed === "normal") {
-        containerRef.current.style.setProperty("--animation-duration", "40s");
-      } else {
-        containerRef.current.style.setProperty("--animation-duration", "80s");
-      }
+      const duration =
+        speed === "fast" ? "20s" : speed === "normal" ? "40s" : "60s";
+      containerRef.current.style.setProperty("--animation-duration", duration);
     }
   };
+
   return (
     <div
       ref={containerRef}
       className={cn(
-        // max-w-7xl to w-screen
-        "scroller relative z-20 w-screen overflow-hidden  [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]",
+        "scroller relative z-20 w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_12%,white_88%,transparent)]",
         className
       )}
     >
+      {/* The visible marquee is decorative and duplicated in the DOM, so it is
+          hidden from assistive tech; the real list follows below. */}
       <ul
         ref={scrollerRef}
+        aria-hidden="true"
         className={cn(
-          // change gap-16
-          " flex min-w-full shrink-0 gap-16 py-4 w-max flex-nowrap",
-          start && "animate-scroll ",
+          "flex w-max min-w-full shrink-0 flex-nowrap items-center gap-3 py-4",
+          start && "animate-scroll",
           pauseOnHover && "hover:[animation-play-state:paused]"
         )}
       >
         {items.map((item, index) => (
           <li
-            className="w-[90vw] max-w-full relative rounded-2xl border border-b-0
-             flex-shrink-0 border-slate-800 p-5 md:p-16 md:w-[40vw]"
-            style={{
-              background: "rgb(4,7,29)",
-              backgroundColor:
-                "linear-gradient(90deg, rgba(4,7,29,1) 0%, rgba(12,14,35,1) 100%)",
-            }}
-            key={index}
+            key={`${item.name}-${index}`}
+            className="surface-card flex flex-shrink-0 items-center gap-2.5 rounded-xl px-5 py-3.5"
           >
-            <blockquote>
-              <div
-                aria-hidden="true"
-                className="user-select-none z-1 pointer-events-none absolute left-0.5 top-0.5 h-[calc(100%_+_4px)] w-[calc(100%_+_4px)]"
-              ></div>
-              {/* change text color, text-lg */}
-             
-              <div className="relative z-20 mt-6 mb-8 flex flex-row items-center">
-                {/*  this div for the profile img */}
-                <div className="me-3">
-                  <img src="/profile.svg" alt="profile" />
-                </div>
-                <span className="flex flex-col gap-1 ">
-                  {/* change text color, font-normal to font-bold, text-xl */}
-                  <span className="text-xl font-bold leading-[1.6] text-white">
-                    {item.name}
-                  </span>
-                  {/* change text color */}
-                  <span className=" text-sm leading-[1.6] text-white-200 font-normal">
-                    {item.title}
-                  </span>
-                </span> 
-              </div>
-              <span className=" relative z-20 text-sm md:text-lg leading-[1.6] text-white font-normal">
-                {item.quote}
-              </span>
-            </blockquote>
+            {item.img && (
+              <Image
+                src={item.img}
+                alt=""
+                width={22}
+                height={22}
+                unoptimized
+                className="h-[22px] w-[22px] object-contain"
+              />
+            )}
+            <span className="whitespace-nowrap text-sm font-medium text-ink-muted">
+              {item.name}
+            </span>
           </li>
+        ))}
+      </ul>
+
+      <ul className="sr-only">
+        {Array.from(new Set(items.map((i) => i.name))).map((name) => (
+          <li key={name}>{name}</li>
         ))}
       </ul>
     </div>

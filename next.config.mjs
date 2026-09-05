@@ -1,43 +1,75 @@
-import {withSentryConfig} from '@sentry/nextjs';
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  reactStrictMode: true,
+  images: {
+    // SVGs are served untouched via `unoptimized` (see lib/util.ts#isSvg), so
+    // the optimizer only ever handles first-party raster images.
+    formats: ["image/avif", "image/webp"],
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
+  },
+};
 
-export default withSentryConfig(nextConfig, {
-// For all available options, see:
-// https://github.com/getsentry/sentry-webpack-plugin#options
+const uploadToSentry = Boolean(
+  process.env.SENTRY_AUTH_TOKEN && process.env.CI
+);
 
-org: "hirusha-rashmika",
-project: "javascript-nextjs",
+const sentryBuildOptions = {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+  org: "hirusha-rashmika",
+  project: "javascript-nextjs",
 
-// Only print logs for uploading source maps in CI
-silent: !process.env.CI,
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
 
-// For all available options, see:
-// https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+  // Only talk to sentry.io from CI with a token present. Local builds then
+  // need no network, and a Sentry outage cannot fail a deploy.
+  sourcemaps: {
+    disable: !uploadToSentry,
+  },
+  release: {
+    create: uploadToSentry,
+    finalize: uploadToSentry,
+  },
 
-// Upload a larger set of source maps for prettier stack traces (increases build time)
-widenClientFileUpload: true,
+  // Belt and braces: never let a Sentry step fail the build.
+  errorHandler: (err) => {
+    console.warn(`[sentry] build step skipped: ${err.message}`);
+  },
 
-// Automatically annotate React components to show their full name in breadcrumbs and session replay
-reactComponentAnnotation: {
-enabled: true,
-},
+  // Upload a larger set of source maps for prettier stack traces
+  widenClientFileUpload: true,
 
-// Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-// This can increase your server load as well as your hosting bill.
-// Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-// side errors will fail.
-// tunnelRoute: "/monitoring",
+  // Automatically annotate React components in breadcrumbs and session replay
+  reactComponentAnnotation: {
+    enabled: true,
+  },
 
-// Hides source maps from generated client bundles
-hideSourceMaps: true,
+  // Hides source maps from generated client bundles
+  hideSourceMaps: true,
 
-// Automatically tree-shake Sentry logger statements to reduce bundle size
-disableLogger: true,
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
 
-// Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-// See the following for more information:
-// https://docs.sentry.io/product/crons/
-// https://vercel.com/docs/cron-jobs
-automaticVercelMonitors: true,
-});
+  // Enables automatic instrumentation of Vercel Cron Monitors.
+  automaticVercelMonitors: true,
+};
+
+export default withSentryConfig(nextConfig, sentryBuildOptions);

@@ -4,9 +4,12 @@ import { cn } from "@/lib/util";
 type SpotlightProps = {
   className?: string;
   fill?: string;
+  /** Unique per instance: three spotlights previously emitted id="filter"
+   *  three times, so every one of them resolved to the first filter. */
+  id?: string;
 };
 
-export const Spotlight = ({ className, fill }: SpotlightProps) => {
+export const Spotlight = ({ className, fill, id = "spotlight" }: SpotlightProps) => {
   return (
     <svg
       className={cn(
@@ -17,7 +20,7 @@ export const Spotlight = ({ className, fill }: SpotlightProps) => {
       viewBox="0 0 3787 2842"
       fill="none"
     >
-      <g filter="url(#filter)">
+      <g filter={`url(#${id})`}>
         <ellipse
           cx="1924.71"
           cy="273.501"
@@ -30,7 +33,7 @@ export const Spotlight = ({ className, fill }: SpotlightProps) => {
       </g>
       <defs>
         <filter
-          id="filter"
+          id={id}
           x="0.860352"
           y="0.838989"
           width="3785.16"
@@ -47,7 +50,7 @@ export const Spotlight = ({ className, fill }: SpotlightProps) => {
           ></feBlend>
           <feGaussianBlur
             stdDeviation="151"
-            result="effect1_foregroundBlur_1065_8"
+            result={`${id}-blur`}
           ></feGaussianBlur>
         </filter>
       </defs>

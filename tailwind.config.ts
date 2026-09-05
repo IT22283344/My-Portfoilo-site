@@ -42,6 +42,21 @@ const config = {
           "100": "#E4ECFF",
         },
         purple: "#CBACF9",
+        /* design-system aliases (see app/globals.css) */
+        surface: {
+          0: "#000319",
+          1: "#070A20",
+          2: "#0C1029",
+        },
+        line: {
+          DEFAULT: "rgba(255,255,255,0.08)",
+          strong: "rgba(255,255,255,0.14)",
+        },
+        ink: {
+          DEFAULT: "#EEF0FA",
+          muted: "#A2A8C3",
+          faint: "#767C99",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -80,6 +95,13 @@ const config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        soft: "0 1px 2px rgba(0,0,0,0.4), 0 12px 32px -20px rgba(0,0,0,0.9)",
+        lifted: "0 1px 2px rgba(0,0,0,0.4), 0 20px 44px -24px rgba(0,0,0,1)",
+      },
+      transitionTimingFunction: {
+        "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
       },
       keyframes: {
         "accordion-down": {
@@ -146,6 +168,10 @@ const config = {
             transform: "translate(calc(-50% - 0.5rem))",
           },
         },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -159,6 +185,7 @@ const config = {
         fifth: "moveInCircle 20s ease infinite",
         scroll:
           "scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite",
+        "fade-up": "fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },
   },

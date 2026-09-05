@@ -1,12 +1,16 @@
 "use client";
-import { useState } from "react";
-import { cn } from "@/lib/util";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { IoCopyOutline } from "react-icons/io5";
+import { IoCheckmarkDone } from "react-icons/io5";
+import Lottie from "react-lottie";
+
+import { cn, isSvg } from "@/lib/util";
 import { BackgroundGradientAnimation } from "./GradiantBg";
 import GlobeDemo from "./GridGlobe";
 import MagicButton from "./MagicButton";
 import animationData from "@/data/confetti.json";
-import { IoCopyOutline } from "react-icons/io5";
-import Lottie from "react-lottie";
+import { profile } from "@/data";
 
 export const BentoGrid = ({
   className,
@@ -18,7 +22,7 @@ export const BentoGrid = ({
   return (
     <div
       className={cn(
-        "grid md:auto-rows-[18rem] grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto ",
+        "mx-auto grid max-w-7xl grid-cols-1 gap-4 md:auto-rows-[18rem] md:grid-cols-3",
         className
       )}
     >
@@ -32,6 +36,7 @@ export const BentoGridItem = ({
   title,
   description,
   img,
+  imgAlt,
   imgClassName,
   titleClassName,
   spareImg,
@@ -44,67 +49,95 @@ export const BentoGridItem = ({
   icon?: React.ReactNode;
   id?: number;
   img?: string;
+  imgAlt?: string;
   imgClassName?: string;
   titleClassName?: string;
   spareImg?: string;
 }) => {
-  const leftLists = ["HTML", "JavaScript", "CSS", "HTML", "Python"];
-  const rightLists = ["Node.Js", "Next.Js", "Nest.Js", "React.js"];
+  const leftLists = ["JavaScript", "TypeScript", "Python", "Linux"];
+  const rightLists = ["React", "Next.js", "NestJS", "React Native"];
   const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    navigator.clipboard.writeText("hirusharashmika69@gmail.com");
+  const resetTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(profile.email);
+      setCopied(true);
+      clearTimeout(resetTimer.current);
+      resetTimer.current = setTimeout(() => setCopied(false), 4000);
+    } catch {
+      // Clipboard API unavailable (insecure context / denied permission):
+      // fall back to letting the visitor mail me directly.
+      window.location.href = `mailto:${profile.email}`;
+    }
+  };
+
+  const defaultOptions = {
+    loop: false,
+    autoplay: true,
+    animationData: animationData,
+    rendererSettings: { preserveAspectRatio: "xMidYMid slice" },
   };
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden row-span-1 rounded-3xl group/bento hover:shadow-xl transition duration-200 shadow-input dark:shadow-none border-transparent justify-between flex flex-col space-y-4 border border-blue-400"
+        "surface-card group/bento relative row-span-1 flex flex-col justify-between overflow-hidden rounded-2xl",
+        className
       )}
-      style={{
-        background: "rgb(4,7,29)",
-        backgroundColor:
-          "linear-gradient(90deg, rgba(4,7,29,1) 0%, rgba(12,14,35,1) 100%)",
-      }}
     >
-      <div className={`${id === 6} && flex justify-center h-full`}>
-        <div className="w-full h-full absolute">
+      <div className={cn("h-full", id === 6 && "flex justify-center")}>
+        <div className="absolute h-full w-full">
           {img && (
-            <img
+            <Image
               src={img}
-              alt={img}
-              className={cn(imgClassName, "object-cover,  object-center ")}
+              alt={imgAlt ?? ""}
+              width={600}
+              height={600}
+              unoptimized={isSvg(img)}
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className={cn(
+                imgClassName,
+                "object-cover object-center opacity-90 transition-transform duration-500 ease-out-expo group-hover/bento:scale-[1.03]"
+              )}
             />
           )}
         </div>
         <div
-          className={`absolute right-0 bottom-5 ${
+          className={cn(
+            "absolute bottom-5 right-0",
             id === 5 && "w-full opacity-75"
-          }`}
+          )}
         >
           {spareImg && (
-            <img
+            <Image
               src={spareImg}
-              alt={spareImg}
-              className={"object-cover object-center w-full h-full"}
+              alt=""
+              width={600}
+              height={600}
+              unoptimized={isSvg(spareImg)}
+              aria-hidden="true"
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="h-full w-full object-cover object-center"
             />
           )}
         </div>
         {id === 6 && (
           <BackgroundGradientAnimation>
-            <div className="absolute z-50 flex items-center justify-center w-full h-full text-white" />
+            <div className="absolute z-50 flex h-full w-full items-center justify-center text-white" />
           </BackgroundGradientAnimation>
         )}
 
         <div
           className={cn(
             titleClassName,
-            "group-hover/bento:translate-x-2 duration-200 relative md:h-full min-h-40 flex flex-col px-5 p-5 lg:p-10"
+            "relative z-10 flex min-h-40 flex-col p-5 transition-transform duration-300 ease-out-expo group-hover/bento:translate-x-1 md:h-full lg:p-8"
           )}
         >
-          <div className="font-sans font-extralight text-[#c1c2d3] text-sm md:text-xs lg:text-base z-10 dark:text-neutral-300">
-            {description}
-          </div>
-          <div className="font-bold font-sans text-lg lg:text-3xl max-w-96 z-10 ">
+          {description && <div className="eyebrow mb-2">{description}</div>}
+          <div className="max-w-[26ch] text-balance text-lg font-semibold leading-snug tracking-[-0.01em] text-ink lg:text-2xl">
             {title}
           </div>
         </div>
@@ -112,61 +145,56 @@ export const BentoGridItem = ({
         {id === 2 && <GlobeDemo />}
 
         {id === 3 && (
-          <div className="flex gap-1 lg:gap-5 w-fit absolute right-3 lg:right-2">
-            <div className="flex flex-col gap-3 md:gap-3 lg:gap-8">
-              {leftLists.map((item, i) => (
-                <span
-                  key={i}
-                  className="lg:py-4 lg:px-3 py-2 px-3 text-xs lg:text-base opacity-50 
-                    lg:opacity-100 rounded-lg text-center bg-[#10132E]"
+          <div className="absolute right-3 flex w-fit gap-2 lg:right-4 lg:gap-3">
+            <ul className="flex flex-col gap-2 lg:gap-4">
+              {leftLists.map((item) => (
+                <li
+                  key={item}
+                  className="rounded-lg border border-line bg-surface-2/80 px-3 py-2 text-center font-mono text-[11px] text-ink-muted lg:px-3.5 lg:py-2.5 lg:text-xs"
                 >
                   {item}
-                </span>
+                </li>
               ))}
-              <span className="lg:py-4 lg:px-3 py-4 px-3  rounded-lg text-center bg-[#10132E]"></span>
-            </div>
-            <div className="flex flex-col gap-3 md:gap-3 lg:gap-8">
-              <span className="lg:py-4 lg:px-3 py-4 px-3  rounded-lg text-center bg-[#10132E]"></span>
-              {rightLists.map((item, i) => (
-                <span
-                  key={i}
-                  className="lg:py-4 lg:px-3 py-2 px-3 text-xs lg:text-base opacity-50 
-                    lg:opacity-100 rounded-lg text-center bg-[#10132E]"
+              <li aria-hidden="true" className="rounded-lg bg-surface-2/40 px-3 py-4" />
+            </ul>
+            <ul className="flex flex-col gap-2 lg:gap-4">
+              <li aria-hidden="true" className="rounded-lg bg-surface-2/40 px-3 py-4" />
+              {rightLists.map((item) => (
+                <li
+                  key={item}
+                  className="rounded-lg border border-line bg-surface-2/80 px-3 py-2 text-center font-mono text-[11px] text-ink-muted lg:px-3.5 lg:py-2.5 lg:text-xs"
                 >
                   {item}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
 
         {id === 6 && (
-          <div className="mt-5 relative flex flex-col">
-            <div className={`absolute bottom-5 right-0 ${
-                copied ? "block" : "block"
-              }`}
-            >
-              <Lottie
-                options={{
-                  loop: copied,
-                  autoplay: copied,
-                  animationData,
-                  rendererSettings: {
-                    preserveAspectRatio: "xMidYMid slice",
-                  },
-                }}
-                height={200}
-                width={400}
-              />
-            </div>
+          <div className="relative z-20 mt-5 px-5 pb-5 lg:px-8">
+            {copied && (
+              <div className="pointer-events-none absolute bottom-5 right-0" aria-hidden="true">
+                <Lottie options={defaultOptions} height={200} width={400} />
+              </div>
+            )}
 
             <MagicButton
-              title={copied ? "Email is Copied!" : "Copy my email address"}
-              icon={<IoCopyOutline />}
+              title={copied ? "Email copied" : "Copy my email address"}
+              icon={
+                copied ? (
+                  <IoCheckmarkDone aria-hidden="true" className="h-4 w-4" />
+                ) : (
+                  <IoCopyOutline aria-hidden="true" className="h-4 w-4" />
+                )
+              }
               position="left"
               handleClick={handleCopy}
-              otherClasses="!bg-[#161A31]"
+              variant="secondary"
             />
+            <span aria-live="polite" className="sr-only">
+              {copied ? "Email address copied to clipboard" : ""}
+            </span>
           </div>
         )}
       </div>

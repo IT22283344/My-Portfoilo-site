@@ -1,23 +1,34 @@
 import Hero from "@/components/Hero";
-import Clients from "@/components/ui/Clients";
-import { FloatingNav } from "@/components/ui/FloatingNav";
+import TechStack from "@/components/ui/TechStack";
+import Experience from "@/components/ui/Expereience";
+import Footer from "@/components/ui/Footer";
 import Grid from "@/components/ui/Grid";
+import Navbar from "@/components/ui/Navbar";
 import RecentProjects from "@/components/ui/RecentProjects";
-import Image from "next/image";
-import { FaHome } from "react-icons/fa";
+import Reveal from "@/components/ui/Reveal";
 
 export default function Home() {
   return (
-    <main className="relative bg-black-100 flex justify-center items-center flex-col overflow-hidden mx-auto sm:px-10 px-5">
-      <div className="max-w-7xl w-full">
-        <FloatingNav navItems={[{
-          name:'Home',link:'/',icon:<FaHome/>
-        }]}/>
-        <Hero/>
-        <Grid/>
-        <RecentProjects/>
-        <Clients/>
-      </div>
-    </main>
+    <>
+      <Navbar />
+      <main className="relative mx-auto flex flex-col items-center justify-center overflow-clip bg-surface-0 px-5 sm:px-10">
+        <div className="w-full max-w-7xl">
+          <Hero />
+          <Reveal>
+            <Grid />
+          </Reveal>
+          <Reveal>
+            <RecentProjects />
+          </Reveal>
+          <Reveal>
+            <TechStack />
+          </Reveal>
+          <Reveal>
+            <Experience />
+          </Reveal>
+          <Footer />
+        </div>
+      </main>
+    </>
   );
 }

@@ -1,82 +1,133 @@
-"use client";
+import Image from "next/image";
+import { FaArrowRight } from "react-icons/fa6";
 
-import { FaLocationArrow } from "react-icons/fa6";
+import { projects, GITHUB_URL } from "@/data";
+import { isSvg } from "@/lib/util";
 
-import { projects } from "@/data";
-import { PinContainer } from "./Pin";
+/** "Smart Fisher Lanka" -> "SF". Used by the no-screenshot placeholder. */
+const monogram = (title: string) =>
+  title
+    .split(/\s+/)
+    .filter((w) => /^[A-Za-z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("");
+
+/**
+ * Shown until a project has a real screenshot. A typographic panel is honest
+ * about there being no image yet; a stock mockup would misrepresent the work.
+ */
+const ProjectPlaceholder = ({ title }: { title: string }) => (
+  <div
+    aria-hidden="true"
+    className="relative flex h-full w-full items-center justify-center overflow-hidden bg-surface-2"
+  >
+    <Image
+      src="/grid.svg"
+      alt=""
+      fill
+      unoptimized
+      className="object-cover opacity-[0.07]"
+    />
+    <span className="relative select-none text-5xl font-bold tracking-tight text-purple/25">
+      {monogram(title)}
+    </span>
+  </div>
+);
 
 const RecentProjects = () => {
   return (
-    <div className="py-20">
-      <h1 className="heading">
-        A small selection of{" "}
-        <span className="text-purple">Recent Projects</span>
-      </h1>
-      <div className="flex flex-wrap items-center justify-center p-4 gap-16 mt-10">
+    <section id="projects" className="py-20 md:py-28">
+      <header className="text-center">
+        <p className="eyebrow">Selected work</p>
+        <h2 className="heading mt-3">
+          Things I&apos;ve <span className="text-purple">built</span>
+        </h2>
+        <p className="mx-auto mt-4 max-w-[58ch] text-[15px] leading-relaxed text-ink-muted">
+          Research, coursework and production systems, from data model through
+          to interface.
+        </p>
+      </header>
+
+      <ul className="mt-12 grid gap-6 md:grid-cols-2">
         {projects.map((item) => (
-          <div
-            className="lg:min-h-[32.5rem] h-[25rem] flex items-center justify-center sm:w-96 w-[80vw]"
+          <li
             key={item.id}
+            className="surface-card group flex flex-col overflow-hidden rounded-2xl"
           >
-            <PinContainer
-              title=""
-              href=""
-            >
-              <div className="relative flex items-center justify-center sm:w-96 w-[80vw] overflow-hidden h-[20vh] lg:h-[30vh] mb-10">
-                <div
-                  className="relative w-full h-full overflow-hidden lg:rounded-3xl"
-                  style={{ backgroundColor: "#13162D" }}
-                >
-                  <img src="/bg.png" alt="bgimg" />
-                </div>
-                <img
+            <div className="relative aspect-[16/9] overflow-hidden border-b border-line">
+              {item.img ? (
+                <Image
                   src={item.img}
-                  alt="cover"
-                  className="z-10 absolute bottom-0"
+                  alt={`Screenshot of ${item.title}`}
+                  fill
+                  unoptimized={isSvg(item.img)}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-500 ease-out-expo group-hover:scale-[1.03]"
                 />
-              </div>
+              ) : (
+                <ProjectPlaceholder title={item.title} />
+              )}
+            </div>
 
-              <h1 className="font-bold lg:text-2xl md:text-xl text-base line-clamp-1">
+            <div className="flex flex-1 flex-col p-5 lg:p-6">
+              <p className="eyebrow">{item.context}</p>
+
+              <h3 className="mt-2.5 text-balance text-lg font-semibold leading-snug tracking-[-0.01em] text-ink">
                 {item.title}
-              </h1>
+              </h3>
+              <p className="mt-1 text-sm text-ink-faint">{item.subtitle}</p>
 
-              <p
-                className="lg:text-xl lg:font-normal font-light text-sm line-clamp-2"
-                style={{
-                  color: "#BEC1DD",
-                  margin: "1vh 0",
-                }}
-              >
+              <p className="mt-3 text-sm leading-relaxed text-ink-muted">
                 {item.des}
               </p>
 
-              <div className="flex items-center justify-between mt-7 mb-3">
-                <div className="flex items-center">
-                  {item.iconLists.map((icon, index) => (
-                    <div
-                      key={index}
-                      className="border border-white/[.2] rounded-full bg-black lg:w-10 lg:h-10 w-8 h-8 flex justify-center items-center"
-                      style={{
-                        transform: `translateX(-${5 * index + 2}px)`,
-                      }}
-                    >
-                      <img src={icon} alt="icon5" className="p-2" />
-                    </div>
-                  ))}
-                </div>
+              <ul
+                className="mt-5 flex flex-wrap gap-1.5"
+                aria-label={`${item.title} tech stack`}
+              >
+                {item.tags.map((tag) => (
+                  <li
+                    key={tag}
+                    className="rounded-md border border-line bg-surface-2 px-2.5 py-1 font-mono text-[11px] text-ink-muted"
+                  >
+                    {tag}
+                  </li>
+                ))}
+              </ul>
 
-                <div className="flex justify-center items-center">
-                  <p className="flex lg:text-xl md:text-xs text-sm text-purple">
-                    Check Live Site
-                  </p>
-                  <FaLocationArrow className="ms-3" color="#CBACF9" />
-                </div>
-              </div>
-            </PinContainer>
-          </div>
+              {item.link && (
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-5 inline-flex items-center gap-2 border-t border-line pt-4 text-sm font-medium text-purple transition-colors hover:text-ink"
+                >
+                  Visit live site
+                  <FaArrowRight
+                    aria-hidden="true"
+                    className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5"
+                  />
+                </a>
+              )}
+            </div>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+
+      <p className="mt-10 text-center text-sm text-ink-muted">
+        More on{" "}
+        <a
+          href={GITHUB_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-purple underline-offset-4 hover:underline"
+        >
+          GitHub
+        </a>
+        .
+      </p>
+    </section>
   );
 };
 
